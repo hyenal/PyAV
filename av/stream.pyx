@@ -83,6 +83,8 @@ cdef class Stream(object):
         if self.codec_context:
             self.codec_context.stream_index = stream.index
 
+        self.side_data = []
+            
         self.metadata = avdict_to_dict(
             stream.metadata,
             encoding=self.container.metadata_encoding,
