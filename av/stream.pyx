@@ -83,8 +83,15 @@ cdef class Stream(object):
         if self.codec_context:
             self.codec_context.stream_index = stream.index
 
-        self.side_data = []
-            
+        lib.AVDictionary *side_data = NULL
+        nb_side_data = stream.nb_side_data
+        # TODO: should we make use av_packet_unpack_dictionary instead ? OR av_stream_get_side_data
+        if nb_side_data:
+            for i in range(nb_side_data):
+                print("STH")
+        else:    
+            self.side_data = None
+        
         self.metadata = avdict_to_dict(
             stream.metadata,
             encoding=self.container.metadata_encoding,
