@@ -94,7 +94,8 @@ cdef class Stream(object):
         if nb_side_data:
             self.side_data  {}
             for i in range(nb_side_data):
-                self.side_data[SideData.get(stream->side_data[i].type)] = stream->side_data[i].data
+                # Use '.' in Cython instead of '->' in C (https://cython.readthedocs.io/en/latest/src/userguide/language_basics.html#differences-between-c-and-cython-expressions)
+                self.side_data[SideData.get(stream.side_data[i].type)] = stream.side_data[i].data
         else:    
             self.side_data = None
         
