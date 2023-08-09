@@ -1,7 +1,7 @@
 import warnings
 
 from cpython cimport PyWeakref_NewRef
-from libc.stdint cimport int64_t, uint8_t
+from libc.stdint cimport int64_t, uint8_t, int32_t
 from libc.string cimport memcpy
 cimport libav as lib
 
@@ -89,13 +89,14 @@ cdef class Stream(object):
         if self.codec_context:
             self.codec_context.stream_index = stream.index
 
-        nb_side_data = stream.nb_side_data
-        # TODO: should we make use av_packet_unpack_dictionary instead ? OR av_stream_get_side_data
-        if nb_side_data:
-            self.side_data  {}
-            for i in range(nb_side_data):
-                # Use '.' in Cython instead of '->' in C (https://cython.readthedocs.io/en/latest/src/userguide/language_basics.html#differences-between-c-and-cython-expressions)
-                self.side_data[SideData.get(stream.side_data[i].type)] = stream.side_data[i].data
+        self.nb_side_data = stream.nb_side_data
+        if self.nb_side_data:
+            self.side_data = {}
+            for i in range(self.nb_side_data):
+                # Get side_data that we know how to get
+                if SideData.get(stream.side_data[i].type):
+                    # Use dumpsidedata maybe here I guess : https://www.ffmpeg.org/doxygen/trunk/dump_8c_source.html#l00430
+                    self.side_data[SideData.get(stream.side_data[i].type)] = lib.av_display_rotation_get(<const int32_t *>stream.side_data[i].data)
         else:    
             self.side_data = None
         
@@ -122,6 +123,10 @@ cdef class Stream(object):
                 "VideoStream.%s is deprecated as it is not always set; please use VideoStream.average_rate." % name,
                 AVDeprecationWarning
             )
+
+
+        if name == 'side_data':
+            return self.side_data
 
         # Convenience getter for codec context properties.
         if self.codec_context is not None:
